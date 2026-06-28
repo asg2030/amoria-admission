@@ -1,0 +1,2 @@
+db.ref('settings').on('value',snap=>{ const s=snap.val()||{}; schoolName.value=s.schoolName||'ثانوية عمورية'; signerName.value=s.signerName||''; });
+settingsForm.addEventListener('submit',async e=>{ e.preventDefault(); await db.ref('settings').update({schoolName:schoolName.value,signerName:signerName.value,updatedAt:now()}); settingsMsg.style.color='#0f5132'; settingsMsg.textContent='تم حفظ الإعدادات'; });
