@@ -1,4 +1,3 @@
-// Firebase configuration for Amoria Admission System
 const firebaseConfig = {
   apiKey: "AIzaSyDCFwPAcHtyb_VlMzg3ZyiRO8b_GIQNyEY",
   authDomain: "amoria-admission.firebaseapp.com",
