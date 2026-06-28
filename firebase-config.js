@@ -1,4 +1,3 @@
-// بيانات Firebase الخاصة بمشروعك
 const firebaseConfig = {
   apiKey: "AIzaSyDCFwPAcHtyb_VlMzg3ZyiRO8b_GIQNyEY",
   authDomain: "amoria-admission.firebaseapp.com",
