@@ -1,1 +1,200 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>إدارة المستخدمين</title><link rel="stylesheet" href="css/style.css"><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script><script src="firebase-config.js"></script></head><body><div class="layout"><aside class="sidebar"><div class="side-title"><div class="side-logo">ع</div><div><h2>ثانوية عمورية</h2><small id="userEmail">...</small></div></div><nav class="nav"><a href="dashboard.html">لوحة التحكم</a><a href="students.html">إدارة الطلاب</a><a class="active admin-only" href="users.html">المستخدمون</a><a class="admin-only" href="settings.html">الإعدادات والعمليات</a><button class="logoutBtn">تسجيل الخروج</button></nav></aside><main class="main"><div class="topbar"><div><h1>إدارة المستخدمين</h1><p>إضافة مستخدمين وتحديد صلاحياتهم داخل النظام</p></div></div><section class="grid cols-2"><div class="card"><h2>إضافة / تعديل مستخدم</h2><form id="userForm"><input type="hidden" id="userKey"><div class="field"><label>اسم المستخدم</label><input class="input" id="uName" required></div><div class="field"><label>البريد الإلكتروني</label><input class="input" id="uEmail" type="email" required></div><div class="field"><label>كلمة المرور</label><input class="input" id="uPassword" required></div><div class="field"><label>الصلاحية</label><select id="uRole" required><option value="registrar">موظف تسجيل: يضيف ويطبع التقارير</option><option value="viewer">تقارير فقط: عرض وطباعة فقط</option><option value="admin">مدير: جميع الصلاحيات</option></select></div><label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input type="checkbox" id="uActive" checked> المستخدم مفعل</label><button class="btn">حفظ المستخدم</button> <button type="button" class="btn secondary" id="clearUserBtn">تفريغ</button></form></div><div class="card"><h2>قائمة المستخدمين</h2><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>البريد</th><th>الصلاحية</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="usersBody"></tbody></table></div></div></section></main></div><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>إدارة المستخدمين</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>نظام القبول</h2>
+      <a href="dashboard.html">لوحة التحكم</a>
+      <a href="students.html">الطلاب</a>
+      <a href="users.html" class="active">المستخدمون</a>
+      <a href="settings.html">الإعدادات</a>
+      <a href="index.html">تسجيل خروج</a>
+    </aside>
+
+    <main class="content">
+      <h1>إدارة المستخدمين</h1>
+      <p>إضافة مستخدمين وتحديد صلاحياتهم داخل النظام</p>
+
+      <div class="grid two">
+        <section class="card">
+          <h2>إضافة / تعديل مستخدم</h2>
+
+          <form id="userForm">
+            <input type="hidden" id="oldKey">
+
+            <label>اسم المستخدم</label>
+            <input class="input" id="name" required>
+
+            <label>البريد الإلكتروني</label>
+            <input class="input" id="email" type="email" required>
+
+            <label>كلمة المرور</label>
+            <input class="input" id="password" required>
+
+            <label>الصلاحية</label>
+            <select class="input" id="role">
+              <option value="admin">مدير النظام</option>
+              <option value="employee">موظف تسجيل: يضيف ويطبع التقارير</option>
+              <option value="viewer">مشاهد فقط</option>
+            </select>
+
+            <label>
+              <input type="checkbox" id="active" checked>
+              المستخدم مفعل
+            </label>
+
+            <br><br>
+            <button class="btn" type="submit">حفظ المستخدم</button>
+            <button class="btn secondary" type="button" onclick="resetForm()">تفريغ</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>قائمة المستخدمين</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>البريد</th>
+                <th>الصلاحية</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr><td colspan="5">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function safeEmail(email) {
+  return email
+    .trim()
+    .toLowerCase()
+    .replaceAll('.', '_')
+    .replaceAll('@', '_at_');
+}
+
+function roleName(role) {
+  if (role === 'admin') return 'مدير النظام';
+  if (role === 'employee') return 'موظف تسجيل';
+  return 'مشاهد فقط';
+}
+
+function resetForm() {
+  document.getElementById('userForm').reset();
+  document.getElementById('oldKey').value = '';
+  document.getElementById('active').checked = true;
+}
+
+async function loadUsers() {
+  const body = document.getElementById('usersBody');
+  const snap = await db.ref('appUsers').once('value');
+
+  if (!snap.exists()) {
+    body.innerHTML = '<tr><td colspan="5">لا يوجد مستخدمون</td></tr>';
+    return;
+  }
+
+  let rows = '';
+  snap.forEach(child => {
+    const key = child.key;
+    const u = child.val();
+
+    rows += `
+      <tr>
+        <td>${u.name || ''}</td>
+        <td>${u.email || ''}</td>
+        <td>${roleName(u.role)}</td>
+        <td>${u.active ? 'مفعل' : 'موقوف'}</td>
+        <td>
+          <button class="btn small" onclick="editUser('${key}')">تعديل</button>
+          <button class="btn small danger" onclick="deleteUser('${key}')">حذف</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  body.innerHTML = rows;
+}
+
+async function editUser(key) {
+  const snap = await db.ref('appUsers/' + key).once('value');
+  if (!snap.exists()) return alert('المستخدم غير موجود');
+
+  const u = snap.val();
+
+  document.getElementById('oldKey').value = key;
+  document.getElementById('name').value = u.name || '';
+  document.getElementById('email').value = u.email || '';
+  document.getElementById('password').value = u.password || '';
+  document.getElementById('role').value = u.role || 'employee';
+  document.getElementById('active').checked = !!u.active;
+}
+
+async function deleteUser(key) {
+  if (!confirm('هل تريد حذف المستخدم؟')) return;
+  await db.ref('appUsers/' + key).remove();
+  loadUsers();
+}
+
+document.getElementById('userForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const password = document.getElementById('password').value.trim();
+  const role = document.getElementById('role').value;
+  const active = document.getElementById('active').checked;
+  const oldKey = document.getElementById('oldKey').value;
+
+  if (!name || !email || !password) {
+    alert('أكمل جميع البيانات');
+    return;
+  }
+
+  const key = safeEmail(email);
+
+  const data = {
+    name,
+    email,
+    password,
+    role,
+    active,
+    updatedAt: new Date().toLocaleString('ar-SA')
+  };
+
+  if (oldKey && oldKey !== key) {
+    await db.ref('appUsers/' + oldKey).remove();
+  }
+
+  await db.ref('appUsers/' + key).set(data);
+
+  alert('تم حفظ المستخدم بنجاح');
+  resetForm();
+  loadUsers();
+});
+
+loadUsers();
+</script>
+</body>
+</html>
