@@ -1,30 +1,47 @@
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const db = firebase.database();
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const grades = ["الأول الابتدائي","الثاني الابتدائي","الثالث الابتدائي","الرابع الابتدائي","الخامس الابتدائي","السادس الابتدائي","الأول المتوسط","الثاني المتوسط","الثالث المتوسط","الأول الثانوي","الثاني الثانوي","الثالث الثانوي"];
 const statuses = ["جديد","تحت الإجراء","تم إصدار الخطاب","تم قبول الطالب","ملغي"];
+const ADMIN_EMAIL = "admin@amoria.com";
+const ADMIN_PASSWORD = "Admin123456";
+
 function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function nowText(){return new Date().toLocaleString('ar-SA')}
 function pathName(){return location.pathname.split('/').pop() || 'index.html'}
 function go(p){location.href=p}
 function toast(t){alert(t)}
-function currentEmail(){return auth.currentUser?.email || ''}
+function currentEmail(){return sessionStorage.getItem('amoria_user_email') || ''}
+function isLoggedIn(){return sessionStorage.getItem('amoria_logged_in') === '1'}
+
 function initBase(){
-  $$('.logoutBtn').forEach(b=>b.onclick=()=>auth.signOut().then(()=>go('index.html')));
+  $$('.logoutBtn').forEach(b=>b.onclick=()=>{sessionStorage.removeItem('amoria_logged_in');sessionStorage.removeItem('amoria_user_email');go('index.html')});
   const page=pathName();
-  if(page!=='index.html') auth.onAuthStateChanged(u=>{ if(!u) go('index.html'); else { const el=$('#userEmail'); if(el) el.textContent=u.email; ensureUserProfile(u); }});
+  if(page!=='index.html'){
+    if(!isLoggedIn()) go('index.html');
+    const el=$('#userEmail'); if(el) el.textContent=currentEmail();
+  }
 }
-async function ensureUserProfile(u){
-  const ref=db.ref('users/'+u.uid); const s=await ref.once('value');
-  if(!s.exists()) await ref.set({email:u.email,role:'موظف',active:true,createdAt:Date.now(),createdAtText:nowText()});
-}
+
 function initLogin(){
   const f=$('#loginForm'); if(!f)return;
-  auth.onAuthStateChanged(u=>{if(u)go('dashboard.html')});
-  f.onsubmit=e=>{e.preventDefault();$('#loginMsg').textContent='جاري الدخول...';auth.signInWithEmailAndPassword($('#email').value.trim(),$('#password').value).then(()=>go('dashboard.html')).catch(err=>{$('#loginMsg').textContent='تعذر الدخول. تأكد من البريد وكلمة المرور.'; console.error(err)})}
+  if(isLoggedIn()) go('dashboard.html');
+  f.onsubmit=e=>{
+    e.preventDefault();
+    const email=$('#email').value.trim();
+    const pass=$('#password').value;
+    $('#loginMsg').textContent='جاري الدخول...';
+    if(email===ADMIN_EMAIL && pass===ADMIN_PASSWORD){
+      sessionStorage.setItem('amoria_logged_in','1');
+      sessionStorage.setItem('amoria_user_email',email);
+      go('dashboard.html');
+    }else{
+      $('#loginMsg').textContent='تعذر الدخول. تأكد من البريد وكلمة المرور.';
+    }
+  }
 }
+
 async function getSettings(){
   const def={schoolName:'ثانوية عمورية',committeeName:'لجنة القبول والتسجيل بثانوية عمورية',signer:'عضو لجنة القبول بمدرسة عمورية المكلف',letterText:'تحقيقاً لأهداف الإدارة العامة للتعليم بمحافظة جدة نحو استقرار الميدان، وما يتوفر لدى اللجنة من بيانات الطاقة الاستيعابية. نأمل منكم التعاون في قبول الطالب أدناه بمدرستكم العامرة بحسب الأنظمة والتعليمات المنظمة للقبول.'};
   const s=await db.ref('settings').once('value'); return {...def,...(s.val()||{})};

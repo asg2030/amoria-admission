@@ -1,20 +1,10 @@
-# نظام لجنة القبول والتسجيل - ثانوية عمورية V3
+# نظام لجنة القبول والتسجيل - ثانوية عمورية
 
-نسخة تعمل على GitHub Pages مع Firebase Authentication وRealtime Database.
+نسخة معدلة تعمل على GitHub Pages بدون Firebase Authentication.
 
-## الدخول
+## بيانات الدخول
 - البريد: admin@amoria.com
-- كلمة المرور: 12345678
+- كلمة المرور: Admin123456
 
-## الملفات
-- index.html تسجيل الدخول
-- dashboard.html لوحة التحكم
-- students.html إدارة الطلاب
-- letter.html خطاب القبول والطباعة
-- settings.html الإعدادات وسجل العمليات
-- firebase-config.js بيانات Firebase
-- css/style.css التنسيق
-- js/app.js وظائف النظام
-
-## الرفع على GitHub
-ارفع محتويات المجلد كاملة فوق الملفات الحالية ثم Commit changes.
+## ملاحظة
+البيانات تحفظ في Firebase Realtime Database، أما تسجيل الدخول فهو داخلي داخل البرنامج لتجاوز مشكلة Auth API.
