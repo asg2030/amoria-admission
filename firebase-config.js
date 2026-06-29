@@ -1,5 +1,5 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyD1PBHewjNOe0JlijkmcGU9gAzJu1J3_IQ",
+  apiKey: "AIzaSyD1PBHewjNOe0J1ijkmcGU9gAzJu1J3_IQ",
   authDomain: "amoria-admission.firebaseapp.com",
   databaseURL: "https://amoria-admission-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "amoria-admission",
@@ -9,4 +9,4 @@ const firebaseConfig = {
   measurementId: "G-QVTJ36Q6RP"
 };
 
-firebase.initializeApp(firebaseConfig);
+
